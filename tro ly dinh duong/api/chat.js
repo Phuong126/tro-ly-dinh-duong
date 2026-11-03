@@ -6,23 +6,31 @@ export default async function handler(req, res) {
   const { message } = req.body;
 
   try {
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": process.env.ANTHROPIC_API_KEY,
-        "anthropic-version": "2023-06-01",
-      },
-      body: JSON.stringify({
-        model: "claude-sonnet-5-5",
-        max_tokens: 1000,
-        system: "Bạn là trợ lý thực đơn nhà hàng.",
-        messages: [{ role: "user", content: message }],
-      }),
-    });
+    const response = await fetch(
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-goog-api-key": process.env.GEMINI_API_KEY,
+        },
+        body: JSON.stringify({
+          systemInstruction: {
+            parts: [{ text: "Bạn là trợ lý thực đơn nhà hàng." }],
+          },
+          contents: [{ role: "user", parts: [{ text: message }] }],
+        }),
+      }
+    );
 
     const data = await response.json();
-    res.status(200).json({ reply: data.content?.[0]?.text ?? "" });
+
+    if (!response.ok) {
+      return res.status(response.status).json({ error: data.error?.message || "Gemini error" });
+    }
+
+    const reply = data.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+    res.status(200).json({ reply });
   } catch (err) {
     res.status(500).json({ error: "Server error" });
   }
