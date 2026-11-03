@@ -1,4 +1,4 @@
-const MODEL = "gemini-2.5-flash";
+const MODEL = "gemini-3.8-flash";
 
 const SYSTEM = `Bạn là trợ lý dinh dưỡng cho người Việt. Trả lời bằng tiếng Việt, ngắn gọn, dễ hiểu.
 Dựa vào danh sách bệnh và thông tin thêm của người dùng để chia món ăn thành 3 nhóm:
