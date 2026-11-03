@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Thực đơn theo bệnh lý</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&display=swap" rel="stylesheet">
+<style>
+/* Layout: sticky section nav, left-aligned hero with inline facts, sticky disease list beside the menu detail (a nutrition-facts label for daily totals), then library, assistant and reviews. */
+:root{
+--bg:#ffffff;--card:#ffffff;--card2:#f7f7f7;--ink:#000000;--mute:#444444;--line:#d4d4d4;
+--acc:#17784a;--acc-ink:#ffffff;--accbg:#e0f0e4;
+--gold:#c98a00;--goldbg:#fff2cf;--c3:#2f63a3;
+--ok:#0a6a3a;--okbg:#e0f3e6;--no:#b3261e;--nobg:#fde9e6;--wn:#7d4c00;--wnbg:#fff0d0;--sw:#9c1d57;--swbg:#fbe4ee;
+--shadow:0 1px 2px rgba(0,0,0,.06),0 10px 24px -16px rgba(0,0,0,.25);
+--fd:"Bricolage Grotesque","Be Vietnam Pro",system-ui,sans-serif;
+--fb:"Be Vietnam Pro",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+*{box-sizing:border-box}
+html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 70px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.6 var(--fb);-webkit-text-size-adjust:100%}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:30}
+button,input,select,textarea{font:inherit;color:inherit}
+h1,h2,h3{text-wrap:balance}
+.in{max-width:1080px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+/* nav */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bg);border-bottom:1px solid var(--line)}
+@supports (background:color-mix(in srgb,red 50%,blue)){.top{background:color-mix(in srgb,var(--bg) 86%,transparent);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}}
+.top .in{display:flex;align-items:center;gap:14px;min-height:56px}
+.brand{display:flex;align-items:center;gap:8px;font:700 1.02rem var(--fd);white-space:nowrap;letter-spacing:-.01em}
+.nv{display:flex;gap:2px;overflow-x:auto;min-width:0;scrollbar-width:none;margin-left:auto}
+.nv::-webkit-scrollbar{display:none}
+.nv button{border:0;background:transparent;color:var(--mute);font:500 .9rem var(--fb);padding:8px 12px;border-radius:8px;cursor:pointer;white-space:nowrap}
+.nv button:hover{color:var(--ink);background:var(--accbg)}
+@media(max-width:600px){.brand span{display:none}.nv{margin-left:0}}
+
+/* hero */
+.hero{padding-block:44px 28px;background:var(--bg)}
+.hero h1{font:800 clamp(2rem,6vw,3.5rem)/1.04 var(--fd);letter-spacing:-.025em;margin:0 0 14px;max-width:15ch}
+.lead{font-size:1.08rem;color:var(--mute);max-width:54ch;margin:0 0 22px}
+.facts{display:flex;flex-wrap:wrap;gap:8px 28px;margin:0;padding:0;list-style:none;font-size:.95rem;color:var(--mute)}
+.facts b{font:800 1.6rem var(--fd);color:var(--acc);margin-right:8px;font-variant-numeric:tabular-nums}
+main.in{padding-bottom:64px}
+
+h2.sh,.lib h2,.ai h2{font:800 clamp(1.45rem,3.4vw,1.9rem)/1.15 var(--fd);letter-spacing:-.02em;margin:0 0 6px;scroll-margin-top:calc(env(safe-area-inset-top,0px) + 70px)}
+.sub{color:var(--mute);margin:0 0 18px;max-width:62ch}
+.mini{font-size:.85rem;color:var(--mute)}
+.warn{background:var(--wnbg);color:var(--wn);border-radius:12px;padding:12px 16px;font-size:.9rem;margin:0 0 20px}
+
+/* controls */
+.bar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+input[type=search],.fld{flex:1 1 220px;min-width:0;padding:11px 14px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink)}
+textarea.fld{width:100%;resize:vertical;line-height:1.5}
+select.fld{flex:0 1 260px}
+.chip{border:1px solid var(--line);background:var(--card);color:var(--ink);padding:8px 14px;border-radius:999px;font-size:.9rem;cursor:pointer}
+.chip:hover{border-color:var(--acc)}
+.chip[aria-pressed=true]{background:var(--acc);border-color:var(--acc);color:var(--acc-ink);font-weight:600}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+.btn{border:0;background:var(--acc);color:var(--acc-ink);padding:11px 18px;border-radius:10px;font-weight:600;cursor:pointer}
+.btn:hover{filter:brightness(1.06)}
+.btn:disabled{opacity:.55;cursor:not-allowed}
+.btn2{border:1px solid var(--line);background:var(--card);color:var(--ink);padding:9px 14px;border-radius:10px;font-size:.9rem;cursor:pointer}
+.btn2:hover{border-color:var(--acc)}
+.btn2:disabled{opacity:.55;cursor:not-allowed}
+.act{margin-top:14px;display:flex;gap:8px;flex-wrap:wrap}
+.empty{color:var(--mute);padding:12px 0}
+.err{color:var(--no);font-size:.85rem;min-height:1.2em}
+.err.okm{color:var(--ok)}
+
+/* account */
+.acct{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;justify-content:space-between;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 16px;margin-bottom:28px}
+.acct .who{font-size:.92rem;flex:1 1 260px;min-width:0}
+.acct .act{margin:0}
+.svd{flex:1 1 100%;display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:.85rem;color:var(--mute)}
+.svd .chip{padding:4px 10px;font-size:.8rem}
+
+/* disease browser */
+.grid{display:grid;grid-template-columns:270px minmax(0,1fr);gap:28px;align-items:start}
+.list{position:sticky;top:calc(env(safe-area-inset-top,0px) + 70px);display:flex;flex-direction:column;gap:3px;max-height:calc(100vh - 100px);overflow-y:auto;padding-right:6px}
+.gh{font-weight:700;font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--mute);margin:16px 0 4px 14px}
+.gh:first-child{margin-top:0}
+.it{text-align:left;border:1px solid transparent;background:transparent;color:var(--ink);padding:9px 14px;border-radius:10px;cursor:pointer}
+.it:hover{background:var(--card);border-color:var(--line)}
+.it[aria-current=true]{background:var(--acc);color:var(--acc-ink);font-weight:600}
+@media(max-width:760px){
+.grid{grid-template-columns:minmax(0,1fr);gap:16px}
+.list{position:relative;top:auto;flex-direction:row;overflow-x:auto;overflow-y:hidden;max-height:none;padding:0 0 8px;gap:6px}
+.gh{display:none}
+.it{white-space:nowrap;border-color:var(--line);background:var(--card);flex:none}
+}
+.det{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:28px;box-shadow:var(--shadow);scroll-margin-top:calc(env(safe-area-inset-top,0px) + 70px);min-width:0}
+@media(max-width:560px){.det{padding:20px 16px;border-radius:16px}}
+.det h2{font:800 clamp(1.5rem,4vw,2.1rem)/1.1 var(--fd);letter-spacing:-.02em;margin:0 0 8px}
+.det p{margin:0}
+.tag{display:inline-block;background:var(--accbg);color:var(--acc);border-radius:6px;padding:2px 10px;font-size:.75rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;margin-bottom:12px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:20px 0 26px}
+@media(max-width:620px){.two{grid-template-columns:1fr}}
+.box{border-radius:14px;padding:14px 16px;min-width:0}
+.box h3{margin:0 0 8px;font-size:.8rem;letter-spacing:.08em;text-transform:uppercase}
+.box ul{margin:0;padding:0;list-style:none}
+.box li{color:var(--ink);padding:3px 0 3px 20px;position:relative}
+.box li::before{content:"";position:absolute;left:3px;top:.8em;width:8px;height:8px;border-radius:50%;background:currentColor}
+.box.ok li::before{color:var(--ok)}.box.no li::before{color:var(--no)}.box.wn li::before{color:var(--wn)}
+.ok{background:var(--okbg);color:var(--ok)}.no{background:var(--nobg);color:var(--no)}.wn{background:var(--wnbg);color:var(--wn)}
+.det h3.mh{font:700 1.15rem var(--fd);margin:0 0 8px}
+.filt{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 6px}
+.filt .chip{padding:6px 12px;font-size:.85rem}
+.lg{font-size:.8rem;color:var(--mute);margin:0 0 4px}
+.menu{border-top:1px solid var(--line);margin-top:6px}
+.row{display:grid;grid-template-columns:72px minmax(0,1fr);gap:14px;padding:14px 0;border-bottom:1px solid var(--line)}
+@media(max-width:480px){.row{grid-template-columns:minmax(0,1fr);gap:4px}}
+.row>b{color:var(--acc);font-size:.8rem;letter-spacing:.08em;text-transform:uppercase;padding-top:3px}
+.row>span{min-width:0}
+.row details{margin-top:6px}
+.row summary{cursor:pointer;font-size:.85rem;color:var(--mute)}
+.row details ul{margin:6px 0 0;padding-left:18px;font-size:.85rem;color:var(--mute)}
+.row details li{font-variant-numeric:tabular-nums}
+.dish{display:inline-block;border-radius:6px;padding:1px 8px;margin:2px 4px 2px 0;font-size:.95rem;transition:opacity .15s}
+.dish.chay{background:var(--okbg);color:var(--ok)}
+.dish.man{background:var(--wnbg);color:var(--wn)}
+.dish.ngot{background:var(--swbg);color:var(--sw)}
+.dish.dim{opacity:.3}
+.mac{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.pill{background:var(--accbg);color:var(--acc);border-radius:6px;padding:1px 8px;font-size:.8rem;font-variant-numeric:tabular-nums;white-space:nowrap}
+
+/* nutrition label for daily totals */
+.tot{margin-top:22px;border:2px solid var(--ink);border-radius:6px;padding:12px 16px 14px;background:var(--card);max-width:440px;font-variant-numeric:tabular-nums}
+.tot h3{font:800 1.4rem/1.1 var(--fd);letter-spacing:-.01em;margin:0;padding-bottom:8px;border-bottom:8px solid var(--ink)}
+.tot .cal{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:8px 0;border-bottom:4px solid var(--ink)}
+.tot .cal span{font-weight:700}
+.tot .cal b{font:800 1.9rem var(--fd)}
+.tot .nl{display:grid;grid-template-columns:minmax(0,1fr) auto 4.2rem;gap:10px;padding:6px 0;border-bottom:1px solid var(--line)}
+.tot .nl span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:8px;background:var(--k)}
+.tot .nl.p{--k:var(--acc)}.tot .nl.c{--k:var(--gold)}.tot .nl.f{--k:var(--c3)}
+.tot .nl i{font-style:normal;color:var(--mute);text-align:right}
+.split{display:flex;height:10px;gap:2px;margin:12px 0 4px;border-radius:5px;overflow:hidden}
+.split i{display:block;min-width:2px}
+.split .p{background:var(--acc)}.split .c{background:var(--gold)}.split .f{background:var(--c3)}
+.tot p{margin:8px 0 0;font-size:.8rem;color:var(--mute);line-height:1.5}
+.tip{background:var(--accbg);border-radius:12px;padding:12px 16px;margin-top:18px;font-size:.95rem}
+
+/* library */
+.lib{margin-top:64px}
+.lg2{margin:0 0 10px;font-size:.9rem;color:var(--mute)}
+.lchk{display:inline-flex;align-items:center;gap:6px;font-size:.9rem;margin-left:4px}
+.lchk input{width:18px;height:18px;accent-color:var(--acc)}
+.lgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;margin-bottom:16px}
+.lcard{border:1px solid var(--line);border-radius:14px;padding:14px 16px;min-width:0;background:var(--card)}
+.lcard.bad{opacity:.85}
+.lh{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.lh b{overflow-wrap:anywhere}
+.lh .dish{margin:0;flex:none;font-size:.8rem}
+.lp{font-size:.85rem;color:var(--mute)}
+.lv{margin-top:8px;font-size:.85rem;border-radius:6px;padding:3px 8px;display:inline-block}
+.ok2{background:var(--okbg);color:var(--ok)}
+.no2{background:var(--nobg);color:var(--no)}
+.lr{display:flex;gap:4px;align-items:center;flex:none}
+.hrt{border:0;background:transparent;cursor:pointer;font-size:1.25rem;line-height:1;color:var(--mute);padding:0 2px;flex:none}
+.hrt[aria-pressed=true]{color:var(--sw)}
+.hrt:focus-visible{border-radius:6px}
+
+/* assistant */
+.ai{margin-top:64px;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:28px;box-shadow:var(--shadow)}
+@media(max-width:560px){.ai{padding:20px 16px;border-radius:16px}}
+.res{display:grid;gap:12px;margin-top:6px}
+.res .box{margin:0}
+.sum{font-weight:500;margin:4px 0 0}
+.q{border:1px dashed var(--line);background:transparent;color:var(--mute);padding:6px 12px;border-radius:999px;font-size:.85rem;cursor:pointer}
+.q:hover{color:var(--ink);border-color:var(--acc)}
+
+/* reviews */
+.rv{margin-top:64px}
+.rvgrid{display:grid;grid-template-columns:minmax(0,340px) minmax(0,1fr);gap:24px;align-items:start}
+@media(max-width:820px){.rvgrid{grid-template-columns:minmax(0,1fr)}}
+.rcol{display:grid;gap:16px;min-width:0}
+.rsum,.rvf{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;min-width:0}
+.avg{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.avg b{font:800 3.4rem/1 var(--fd);font-variant-numeric:tabular-nums}
+.avg span{color:var(--mute);font-size:.95rem}
+.sr{display:inline-block;font-size:1.2rem;line-height:1.2;letter-spacing:2px;background:linear-gradient(90deg,var(--gold) var(--p,0%),var(--line) var(--p,0%));-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent}
+.dist{display:grid;gap:6px;margin-top:14px}
+.dr{display:grid;grid-template-columns:2.4rem minmax(0,1fr) 2rem;align-items:center;gap:8px;font-size:.85rem;color:var(--mute);font-variant-numeric:tabular-nums}
+.dr .tr{height:8px;border-radius:4px;background:var(--line);overflow:hidden}
+.dr .tr i{display:block;height:100%;background:var(--gold);border-radius:4px}
+.dr em{font-style:normal;text-align:right}
+.fh{font:700 1.1rem var(--fd);margin:0 0 10px}
+.rs{display:inline-flex;flex-direction:row-reverse;justify-content:flex-end;gap:2px;position:relative}
+.rs input{position:absolute;opacity:0;width:1px;height:1px;margin:0}
+.rs label{font-size:2rem;line-height:1;cursor:pointer;color:var(--line);padding:2px 3px;transition:color .1s}
+.rs label:hover,.rs label:hover~label,.rs input:checked~label{color:var(--gold)}
+.rs input:focus-visible+label{outline:3px solid var(--acc);outline-offset:2px;border-radius:6px}
+.rs.off label{cursor:not-allowed;opacity:.5}
+.rsl{display:inline-block;margin-left:10px;font-size:.9rem;color:var(--mute)}
+.fl{display:flex;flex-direction:column;gap:4px;font-size:.85rem;color:var(--mute);margin-top:12px}
+.fl .fld{flex:none;width:100%}
+.rvc{text-align:right;font-size:.8rem;color:var(--mute);font-variant-numeric:tabular-nums}
+.rlist{display:grid;gap:12px;min-width:0}
+.ri{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;min-width:0}
+.rih{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px}
+.rih b{overflow-wrap:anywhere}
+.rih time{margin-left:auto}
+.ri p{margin:8px 0 0;overflow-wrap:anywhere;white-space:pre-wrap}
+.ri .act{margin-top:10px}
+.sm{padding:4px 10px;font-size:.8rem}
+
+/* dialog */
+dialog{border:1px solid var(--line);border-radius:16px;background:var(--card);color:var(--ink);padding:22px;max-width:380px;width:calc(100% - 32px)}
+dialog::backdrop{background:rgba(0,0,0,.45)}
+.af{display:flex;flex-direction:column;gap:10px;margin-top:12px}
+.af label{font-size:.85rem;color:var(--mute);display:flex;flex-direction:column;gap:4px}
+.af label[hidden]{display:none}
+.af .fld{flex:none}
+
+footer.in{padding-block:8px 40px;color:var(--mute);font-size:.85rem}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+
+<div class="top"><div class="in">
+<span class="brand"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11h18a9 9 0 0 1-18 0z" fill="var(--acc)"/><path d="M8 8c0-2 1.5-3 1.5-5M12 8c0-2 1.5-3 1.5-5M16 8c0-2 1.5-3 1.5-5" stroke="var(--acc)" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg><span>Thực đơn theo bệnh lý</span></span>
+<nav class="nv" aria-label="Các phần của trang"><button type="button" data-go="mt">Thực đơn mẫu</button><button type="button" data-go="lbt">Thư viện món</button><button type="button" data-go="ait">Trợ lý</button><button type="button" data-go="rvt">Đánh giá</button></nav>
+</div></div>
+<header class="hero"><div class="in">
+<h1>Ăn gì khi bạn đang có bệnh?</h1>
+<p class="lead">Chọn nhóm bệnh để xem món nên ưu tiên, món nên hạn chế và thực đơn mẫu cho một ngày, kèm năng lượng và macro từng món.</p>
+<ul class="facts"><li><b id="f1">13</b>nhóm bệnh</li><li><b id="f2">250</b>món Việt</li><li><b>3</b>loại: chay, mặn, ngọt</li></ul>
+</div></header>
+<main class="in">
+<div class="warn">Đây là gợi ý tham khảo chung, không dùng để chẩn đoán hay thay thế bác sĩ. Nếu bạn đang dùng thuốc, mang thai hoặc có nhiều bệnh cùng lúc, hãy hỏi bác sĩ hoặc chuyên gia dinh dưỡng trước khi áp dụng.</div>
+<div class="acct" id="acct"></div>
+<section aria-labelledby="mt">
+<h2 class="sh" id="mt">Thực đơn theo nhóm bệnh</h2>
+<p class="sub">Chọn một nhóm bệnh để xem nên ưu tiên và hạn chế món nào, kèm thực đơn mẫu cho một ngày.</p>
+<div class="bar"><input type="search" id="q" placeholder="Tìm bệnh, ví dụ: gout, dạ dày…" aria-label="Tìm bệnh"><span id="chips" style="display:contents"></span></div>
+<div class="grid"><nav class="list" id="list" aria-label="Danh sách bệnh"></nav><article class="det" id="det" aria-live="polite"></article></div>
+</section>
+<section class="lib" aria-labelledby="lbt"><h2 id="lbt">Thư viện món ăn</h2>
+<p class="sub">Gần 250 món Việt phổ biến, chia chay, mặn, ngọt, kèm năng lượng và macro mỗi khẩu phần. Chọn bệnh để xem món nào phù hợp.</p>
+<div class="bar"><input type="search" id="lq" class="fld" placeholder="Tìm món, ví dụ: phở, cá, chè…" aria-label="Tìm món ăn"><select id="ld" class="fld" aria-label="Lọc theo bệnh"></select></div>
+<div class="bar" style="margin-bottom:8px"><span id="lt" style="display:contents"></span><label class="lchk"><input type="checkbox" id="lo"> Chỉ hiện món phù hợp</label><label class="lchk"><input type="checkbox" id="lf"> Chỉ món yêu thích</label></div>
+<p class="lg2" id="lc" aria-live="polite"></p>
+<div class="lgrid" id="lg"></div>
+<p class="mini">Phân loại phù hợp dựa trên thành phần chính của món (muối, đường, purin, kali…), chưa tính khẩu phần và cách chế biến cụ thể. Macro là ước tính cho khẩu phần ghi kèm. Hãy hỏi bác sĩ hoặc chuyên gia dinh dưỡng trước khi áp dụng.</p></section>
+<section class="ai" aria-labelledby="ait"><h2 id="ait">Hỏi trợ lý dinh dưỡng</h2>
+<p class="sub">Chọn bệnh bạn đang có, rồi hỏi bằng tiếng Việt. Trợ lý chia món thành nên ăn, ăn hạn chế và không nên ăn.</p>
+<div class="bar" id="ac" role="group" aria-label="Bệnh bạn đang có"></div>
+<div class="bar"><input class="fld" id="ax" maxlength="300" placeholder="Thông tin thêm: dị ứng, thuốc đang dùng, mang thai… (không bắt buộc)" aria-label="Thông tin thêm"></div>
+<div class="bar"><input class="fld" id="aq" maxlength="300" placeholder="Ví dụ: Tôi bị gout, ăn tôm được không?" aria-label="Câu hỏi"><button class="btn" id="ab">Hỏi trợ lý</button></div>
+<div class="bar" id="aqs"></div>
+<div id="ao" aria-live="polite"></div>
+<p class="mini">Trợ lý là AI nên có thể sai, và không thay thế bác sĩ. Câu hỏi và thông tin bạn nhập được gửi tới dịch vụ AI để trả lời.</p></section>
+<section class="rv" aria-labelledby="rvt"><h2 class="sh" id="rvt">Đánh giá trang web</h2>
+<p class="sub">Cho điểm và để lại nhận xét để trang tốt hơn. Mỗi người có một đánh giá, bạn có thể sửa hoặc xóa bất cứ lúc nào.</p>
+<div class="rvgrid">
+<div class="rcol">
+<div class="rsum" id="rsum" aria-live="polite"></div>
+<form class="rvf" id="rvf" novalidate>
+<h3 class="fh" id="rvh">Đánh giá của bạn</h3>
+<div><div class="rs" id="rs" role="radiogroup" aria-labelledby="rvh">
+<input type="radio" name="st" id="st5" value="5"><label for="st5" aria-label="5 sao, rất tốt">★</label>
+<input type="radio" name="st" id="st4" value="4"><label for="st4" aria-label="4 sao, tốt">★</label>
+<input type="radio" name="st" id="st3" value="3"><label for="st3" aria-label="3 sao, bình thường">★</label>
+<input type="radio" name="st" id="st2" value="2"><label for="st2" aria-label="2 sao, tạm được">★</label>
+<input type="radio" name="st" id="st1" value="1"><label for="st1" aria-label="1 sao, chưa tốt">★</label>
+</div><span class="rsl" id="rsl" aria-live="polite">Chọn số sao</span></div>
+<label class="fl" for="rvn">Tên hiển thị<input class="fld" id="rvn" maxlength="30" placeholder="Để trống sẽ hiện là Ẩn danh" autocomplete="nickname"></label>
+<label class="fl" for="rvx">Nhận xét<textarea class="fld" id="rvx" rows="4" maxlength="500" placeholder="Bạn thấy phần nào hữu ích, cần thêm món hoặc bệnh nào?"></textarea></label>
+<div class="rvc" id="rvcnt">0/500</div>
+<div class="err" id="rvm" role="status"></div>
+<div class="act" style="margin-top:6px"><button class="btn" id="rvb" type="submit">Gửi đánh giá</button><button class="btn2" id="rvd" type="button" hidden>Xóa đánh giá của tôi</button></div>
+</form>
+</div>
+<div class="rlist" id="rl" aria-live="polite"></div>
+</div></section>
+</main>
+<footer class="in"><p>Gợi ý tham khảo, không thay thế tư vấn của bác sĩ hoặc chuyên gia dinh dưỡng.</p></footer>
+<dialog id="authd" aria-labelledby="adt">
+<h2 id="adt" style="margin:0;font:700 1.2rem var(--fd)">Đăng nhập</h2>
+<div class="filt" style="margin:10px 0 0"><button class="chip" type="button" data-am="login" aria-pressed="true">Đăng nhập</button><button class="chip" type="button" data-am="reg" aria-pressed="false">Đăng ký</button></div>
+<form class="af" id="af" novalidate>
+<label>Tên đăng nhập<input class="fld" id="au" autocomplete="username" maxlength="24" autocapitalize="none" spellcheck="false"></label>
+<label>Mật khẩu<input class="fld" id="ap" type="password" autocomplete="current-password" maxlength="100"></label>
+<label id="apl" hidden>Nhập lại mật khẩu<input class="fld" id="ap2" type="password" autocomplete="new-password" maxlength="100"></label>
+<div class="err" id="ae" role="alert"></div>
+<div class="act" style="margin:0"><button class="btn" id="aSub" type="submit">Đăng nhập</button><button class="btn2" type="button" id="aClose">Đóng</button></div>
+<p class="mini" style="margin:0">Tài khoản được lưu ngay trong trình duyệt này, mật khẩu được mã hóa nhưng không thể khôi phục nếu bạn quên. Không dùng mật khẩu bạn đang dùng ở nơi khác.</p>
+</form></dialog>
+<script>
+const G=["Chuyển hóa và nội tiết","Tim mạch","Tiêu hóa","Thận và tiết niệu"];
+const D=[
+{id:"diabetes",n:"Đái tháo đường",g:0,d:"Cần giữ đường huyết ổn định: chia nhỏ bữa, ưu tiên tinh bột hấp thu chậm, đủ đạm và rau.",
+eat:["Gạo lứt, khoai lang (lượng vừa)","Cá, ức gà, trứng, đậu hũ","Rau xanh luộc/hấp","Ổi, thanh long (lượng vừa)"],no:["Nước ngọt, trà sữa, nước ép","Chè, bánh ngọt, trái cây rất ngọt (xoài, sầu riêng)","Rượu bia","Món chiên rán nhiều dầu"],
+m:{"Sáng":"Trứng luộc, khoai lang luộc nhỏ, sữa chua không đường","Trưa":"Cơm gạo lứt, cá hấp gừng, rau muống luộc, canh bí đao","Tối":"Cơm gạo lứt, ức gà áp chảo, su su xào, canh nấm","Phụ":"Ổi"},
+t:"Ăn đúng giờ, đừng bỏ bữa nếu đang dùng insulin hoặc sulfonylurea để tránh hạ đường huyết."},
+{id:"dyslipidemia",n:"Rối loạn mỡ máu",g:0,d:"Giảm chất béo bão hòa và cholesterol, tăng chất xơ và cá giàu omega-3.",
+eat:["Cá hồi, cá basa, ức gà","Yến mạch, gạo lứt","Rau củ, trái cây tươi","Hạnh nhân, hạt điều (một nắm nhỏ)"],no:["Nội tạng, lòng, tiết","Thịt mỡ, thịt kho, lạp xưởng","Đồ chiên rán","Lòng đỏ trứng ăn nhiều"],
+m:{"Sáng":"Yến mạch sữa tươi, táo","Trưa":"Cơm gạo lứt, cá hồi áp chảo, rau muống luộc, canh nấm","Tối":"Cơm gạo lứt, ức gà áp chảo, cà tím nướng","Phụ":"Hạnh nhân"},
+t:"Nếu đang dùng statin, tránh bưởi và bưởi chùm vì làm tăng nồng độ thuốc trong máu."},
+{id:"fatty_liver",n:"Gan nhiễm mỡ",g:0,d:"Giảm đường, rượu và chất béo bão hòa; kiểm soát cân nặng từ từ.",
+eat:["Cá nướng/hấp, đậu hũ","Gạo lứt, rau xanh","Trái cây ít ngọt (ổi, thanh long)","Trà xanh không đường, nước lọc"],no:["Rượu bia","Nước ngọt, trà sữa","Đồ chiên rán, mỡ động vật","Chè, bánh kẹo"],
+m:{"Sáng":"Cháo đậu xanh, trứng luộc","Trưa":"Cơm gạo lứt, cá basa nướng, cải ngọt luộc, canh bí đao","Tối":"Cơm gạo lứt, đậu hũ hấp nấm, su su xào","Phụ":"Ổi"},
+t:"Giảm 0,5-1 kg mỗi tuần là hợp lý; giảm quá nhanh có thể làm gan tổn thương nặng hơn."},
+{id:"gout",n:"Gout",g:0,d:"Hạn chế thực phẩm giàu purin để tránh tăng acid uric, uống nhiều nước.",
+eat:["Trứng, sữa chua, sữa ít béo","Gạo, khoai, rau xanh","Trái cây tươi (cam, táo)","Nước lọc 2-2,5 lít/ngày"],no:["Nội tạng (gan, tim, cật, lòng)","Hải sản có vỏ, ngao, sò","Bia, rượu","Nước ngọt, nước ép có đường"],
+m:{"Sáng":"Cháo đậu xanh, sữa chua không đường","Trưa":"Cơm gạo lứt, ức gà áp chảo, rau muống luộc, canh bí đao","Tối":"Cơm trắng, trứng đúc thịt hấp, su su xào","Phụ":"Cam"},
+t:"Trong cơn đau cấp, nên bỏ hẳn rượu bia và nội tạng, rồi đi khám để được điều chỉnh thuốc."},
+{id:"hypothyroid",n:"Suy giáp",g:0,d:"Ăn cân đối, tránh lạm dụng thực phẩm cản trở hấp thu thuốc hoặc iod.",
+eat:["Trứng, cá, thịt nạc","Gạo lứt, rau củ nấu chín","Trái cây tươi","Sữa chua (cách xa giờ uống thuốc)"],no:["Rau họ cải ăn sống số lượng lớn","Đậu nành gần giờ uống thuốc","Cà phê ngay sau khi uống thuốc","Đồ chế biến sẵn nhiều muối"],
+m:{"Sáng":"Trứng luộc, chuối","Trưa":"Cơm gạo lứt, cá hấp gừng, rau muống luộc","Tối":"Cơm trắng, gà nướng, cà tím nướng","Phụ":"Cam"},
+t:"Levothyroxine thường uống lúc đói, cách bữa ăn 30-60 phút và cách sữa, canxi, cà phê vài giờ."},
+{id:"hypertension",n:"Cao huyết áp",g:1,d:"Giảm muối và natri, tăng rau quả giàu kali (nếu thận bình thường).",
+eat:["Rau xanh, trái cây tươi","Cá hấp, gà luộc","Yến mạch, gạo lứt","Hạt không muối"],no:["Phở, bún nước, mì gói (nhiều natri)","Dưa muối, cà muối, kim chi","Chả lụa, lạp xưởng","Rượu bia, nêm nếm mặn"],
+m:{"Sáng":"Yến mạch sữa tươi, chuối","Trưa":"Cơm gạo lứt, cá hấp gừng, rau muống luộc, canh bí đao","Tối":"Cơm trắng, gà luộc, su su xào, canh nấm","Phụ":"Hạnh nhân"},
+t:"Nêm nhạt dần: nước mắm, bột canh và nước chấm đều tính vào lượng muối trong ngày (dưới khoảng 5 g muối)."},
+{id:"heart_failure",n:"Suy tim",g:1,d:"Hạn chế natri nghiêm ngặt để tránh ứ dịch, phù và khó thở.",
+eat:["Món tự nấu, nêm rất nhạt","Cá hấp, gà luộc","Rau luộc, trái cây tươi","Cháo, cơm trắng"],no:["Mọi món mặn, nước dùng đậm","Đồ muối, đồ chế biến sẵn","Rượu bia","Uống quá nhiều nước nếu bác sĩ có giới hạn"],
+m:{"Sáng":"Yến mạch sữa tươi","Trưa":"Cơm trắng, gà luộc, cải ngọt luộc","Tối":"Cơm trắng, cá hấp gừng, su su xào","Phụ":"Táo"},
+t:"Cân mỗi sáng; tăng hơn 1-2 kg trong vài ngày là dấu hiệu ứ dịch, cần báo bác sĩ."},
+{id:"gastric_ulcer",n:"Viêm loét dạ dày",g:2,d:"Ăn món mềm, ít kích thích, chia nhiều bữa nhỏ, không để bụng đói lâu.",
+eat:["Cháo, cơm mềm","Cá hấp, gà luộc","Rau củ nấu chín mềm","Chuối, sữa chua không đường"],no:["Món cay, ớt, tiêu","Món chua, trái cây chua","Cà phê, rượu bia","Đồ chiên rán"],
+m:{"Sáng":"Cháo gà","Trưa":"Cơm trắng, cá hấp gừng, su su xào, canh bí đao","Tối":"Cơm trắng, gà luộc, cải ngọt luộc","Phụ":"Chuối, sữa chua không đường"},
+t:"Nếu đau dạ dày kéo dài, đi ngoài phân đen hoặc nôn ra máu, hãy đi khám ngay."},
+{id:"gerd",n:"Trào ngược dạ dày - thực quản",g:2,d:"Tránh món kích thích tăng tiết acid, không ăn no sát giờ ngủ.",
+eat:["Yến mạch, cơm, cháo","Gà luộc, cá hấp","Rau củ nấu chín","Chuối, đu đủ chín"],no:["Món chiên, nhiều dầu mỡ","Món cay, chua","Cà phê, rượu bia","Ăn no trước khi nằm"],
+m:{"Sáng":"Yến mạch sữa tươi","Trưa":"Cơm trắng, gà luộc, rau muống luộc, canh bí đao","Tối":"Cháo gà, cá hấp gừng","Phụ":"Chuối, đu đủ chín"},
+t:"Ăn tối trước khi ngủ ít nhất 3 giờ và kê cao đầu giường."},
+{id:"ibs",n:"Hội chứng ruột kích thích",g:2,d:"Nhiều người đỡ hơn khi giảm thực phẩm FODMAP cao; nên thử từng nhóm và ghi nhật ký ăn.",
+eat:["Cơm, cháo, khoai","Gà, cá, trứng","Rau củ ít FODMAP (cải ngọt, rau muống)","Chuối chín vừa"],no:["Hành tây, tỏi số lượng lớn","Sữa có lactose, đậu hũ non","Dưa hấu, xoài, mít, táo","Món cay, cà phê"],
+m:{"Sáng":"Cháo gà, chuối","Trưa":"Cơm trắng, gà luộc, cải ngọt luộc","Tối":"Cơm trắng, cá hấp gừng, rau muống luộc","Phụ":"Thanh long"},
+t:"Chế độ low FODMAP chỉ nên áp dụng vài tuần rồi thử lại từng nhóm, tốt nhất với chuyên gia dinh dưỡng."},
+{id:"celiac",n:"Bệnh Celiac (không dung nạp gluten)",g:2,d:"Loại bỏ hoàn toàn gluten từ lúa mì, lúa mạch, lúa mạch đen, kể cả nước chấm.",
+eat:["Gạo, xôi, khoai, bắp","Thịt, cá, trứng tươi","Rau củ, trái cây","Sản phẩm ghi rõ không gluten"],no:["Bánh mì, mì gói, bánh quy","Bia","Nem rán, đồ chiên có bột","Nước tương thông thường"],
+m:{"Sáng":"Cháo gà, chuối","Trưa":"Cơm trắng, thịt lợn luộc, rau muống luộc","Tối":"Cơm trắng, cá hấp gừng, su su xào","Phụ":"Sữa chua không đường"},
+t:"Đọc kỹ nhãn: nước tương, gia vị gói và đồ chế biến sẵn thường lẫn lúa mì."},
+{id:"ckd",n:"Suy thận / bệnh thận mạn",g:3,d:"Kiểm soát kali, phospho, natri và đạm theo giai đoạn bệnh; luôn theo chỉ định bác sĩ.",
+eat:["Cơm trắng, cháo","Rau ít kali (cải ngọt, su su) nấu kỹ","Trứng, thịt nạc lượng vừa","Táo, nho (lượng nhỏ)"],no:["Chuối, cam, nước dừa, bơ, sầu riêng (kali cao)","Nội tạng, canh xương hầm (phospho)","Món mặn, đồ muối","Ăn quá nhiều đạm"],
+m:{"Sáng":"Cháo gà","Trưa":"Cơm trắng, thịt lợn luộc, cải ngọt luộc","Tối":"Cơm trắng, trứng ốp la, su su xào","Phụ":"Táo nhỏ"},
+t:"Mức kali, phospho và đạm cần điều chỉnh theo xét nghiệm máu của bạn; thực đơn này chỉ là ví dụ chung."},
+{id:"kidney_stones",n:"Sỏi thận (oxalat)",g:3,d:"Uống đủ nước, giảm thực phẩm giàu oxalat và muối, vẫn ăn đủ canxi từ thức ăn.",
+eat:["Nước lọc 2-2,5 lít/ngày","Cam, chanh (có citrat)","Sữa chua, trứng, thịt nạc vừa phải","Rau ít oxalat (cải ngọt, su su)"],no:["Rau bina (cải bó xôi) nhiều","Hạnh nhân, hạt các loại ăn nhiều","Món mặn, đồ muối","Trà đặc, nước ngọt"],
+m:{"Sáng":"Trứng luộc, sữa chua không đường","Trưa":"Cơm trắng, cá hấp gừng, cải ngọt luộc, canh bí đao","Tối":"Cơm trắng, gà luộc, su su xào","Phụ":"Cam"},
+t:"Loại sỏi khác nhau cần chế độ khác nhau (calci oxalat, acid uric…); hãy hỏi bác sĩ về loại sỏi của bạn."}
+];
+const LIB=`trứng luộc|1 quả|78|6.3|0.6|5.3|man|
+khoai lang luộc nhỏ|100 g|90|1.6|21|0.1|ngot|k
+sữa chua không đường|1 hũ 100 g|60|3.5|4.7|3.3|chay|pho
+cơm gạo lứt|1 chén ~150 g|165|3.5|34|1.3|chay|pho
+cơm trắng|1 chén ~150 g|195|4|43|0.4|chay|gi
+cá hấp gừng|100 g|110|20|0.5|3|man|
+cá hồi áp chảo|100 g|210|22|0|13|man|
+cá basa nướng|100 g|130|17|0|6.5|man|
+rau muống luộc|100 g|25|2.6|3.1|0.3|chay|k
+cải ngọt luộc|100 g|22|2.5|3|0.3|chay|
+su su xào|100 g, ít dầu|55|1|6|3|chay|
+cà tím nướng|100 g|45|1|8|1.5|chay|
+canh bí đao|1 bát 200 ml|20|0.8|4|0.1|chay|
+canh nấm|1 bát 200 ml|30|2.5|3|1|chay|
+ức gà áp chảo|100 g|170|30|0|4.5|man|
+gà luộc|100 g|165|29|0|4|man|
+gà nướng|100 g|190|27|0|9|man|
+thịt lợn luộc|80 g nạc|160|21|0|8|man|
+trứng ốp la|1 quả, ít dầu|110|6.3|0.4|9|man|
+trứng đúc thịt hấp|1 phần: 2 trứng, 50 g thịt|230|18|2|16|man|
+đậu hũ hấp nấm|150 g đậu hũ|130|13|3|7.5|chay|soy
+yến mạch sữa tươi|40 g yến mạch, 200 ml sữa|285|12|36|10|chay|pho,glu
+cháo đậu xanh|1 bát 300 g|150|6|28|1.5|chay|gi
+cháo gà|1 bát 300 g|180|12|26|3.5|man|gi
+táo|1 quả 150 g|78|0.4|21|0.3|ngot|
+táo nhỏ|100 g|52|0.3|14|0.2|ngot|
+chuối|1 quả 100 g|90|1.1|23|0.3|ngot|k
+cam|1 quả 150 g|70|1.4|17|0.2|ngot|k,sour
+ổi|1 quả 150 g|100|3.8|21|1.4|ngot|
+đu đủ chín|100 g|43|0.5|11|0.3|ngot|
+thanh long|100 g|60|1.2|13|0.4|ngot|
+hạnh nhân|20 g|116|4.2|4.3|10|chay|ox,pho
+phở bò|1 tô 450 ml|430|22|56|12|man|na,gi
+phở gà|1 tô 450 ml|400|24|55|8|man|na,gi
+bún bò Huế|1 tô 500 ml|520|27|60|18|man|na,gi,spi,sat
+bún riêu cua|1 tô 500 ml|450|20|58|15|man|na,gi,pur
+bún chả|1 phần|640|28|70|26|man|gi,sat,sug,na
+hủ tiếu|1 tô 450 ml|450|20|60|14|man|na,gi
+mì Quảng|1 tô|520|24|62|18|man|na,gi
+bánh canh cua|1 tô|480|20|70|12|man|na,gi,pur
+miến gà|1 tô|380|20|55|8|man|na,gi
+mì gói|1 gói 75 g|380|8|52|14|man|na,glu,fry,gi
+bún tươi|1 chén 150 g|160|3|36|0.5|chay|gi
+cháo cá|1 bát 300 g|220|14|28|5|man|gi
+cháo thịt bằm|1 bát 300 g|230|11|30|7|man|gi
+cháo lòng|1 tô 350 g|400|20|40|18|man|na,pur,sat,gi
+cháo yến mạch|1 bát 300 g|160|6|28|3|chay|glu
+cơm tấm sườn|1 dĩa|750|32|90|28|man|na,sat,fry,sug,gi
+cơm gà Hội An|1 dĩa|600|30|80|17|man|na,gi
+cơm chiên trứng|1 dĩa|520|14|75|18|man|fry,na,gi
+bánh mì thịt|1 ổ|450|18|52|18|man|na,glu,sat,gi
+bánh mì trứng ốp la|1 ổ|400|14|50|15|man|glu,na,gi
+bánh mì trắng|1 ổ không|260|8|52|2|chay|glu,gi
+bánh mì nguyên cám|2 lát|160|7|28|2|chay|glu
+xôi đậu xanh|1 phần 150 g|280|8|55|4|chay|gi
+xôi lạc|1 phần 150 g|340|9|58|8|chay|gi,ox
+xôi gà|1 gói|480|18|75|11|man|na,gi
+bánh cuốn|1 đĩa|350|14|55|8|man|na,gi
+bánh xèo|1 cái|330|10|30|19|man|fry,sat
+nem rán|2 cái|260|9|22|15|man|fry,glu,sat
+gỏi cuốn tôm thịt|2 cuốn|140|9|20|2.5|man|pur
+gỏi cuốn chay|2 cuốn|120|5|22|2|chay|
+canh chua cá|1 bát 250 ml|90|11|8|2|man|sour,na
+canh rau ngót thịt bằm|1 bát 200 ml|70|6|4|3|man|
+canh cải xanh thịt bằm|1 bát 200 ml|65|6|3|3|man|
+canh bí đỏ|1 bát 200 ml|70|2|15|0.5|chay|k
+canh mướp|1 bát 200 ml|40|2|7|0.5|chay|
+canh khổ qua nhồi thịt|1 bát 250 ml|110|9|8|5|man|
+cá thu kho|100 g|190|20|4|10|man|na
+cá lóc hấp|100 g|105|20|0|2.5|man|
+cá diêu hồng chiên|100 g|220|20|5|13|man|fry
+cá rô phi nướng|100 g|130|22|0|4|man|
+cá ngừ áp chảo|100 g|190|28|0|8|man|pur
+tôm hấp|100 g|100|20|1|1.5|man|pur
+tôm rang|100 g|180|22|4|8|man|pur,na
+mực xào|100 g|150|18|6|6|man|pur
+ngao hấp sả|100 g|80|12|4|2|man|pur,na
+cua hấp|100 g|97|19|0|1.5|man|pur
+thịt bò xào hành tây|100 g|210|22|6|11|man|sat
+thịt bò hầm|100 g|200|25|3|10|man|sat,pur
+thịt heo kho trứng|150 g|380|24|8|28|man|sat,na,sug
+sườn rim|100 g|330|20|12|22|man|sat,sug,na,fry
+thịt heo quay|100 g|380|20|0|33|man|sat,fry,na
+chả lụa|50 g|105|8|3|7|man|na,sat
+lạp xưởng|50 g|210|8|8|17|man|na,sat,sug
+gà rang gừng|100 g|180|22|4|8|man|
+gà chiên giòn|100 g|290|20|14|18|man|fry,sat,glu,na
+gà kho sả ớt|100 g|190|22|3|10|man|spi,na
+cánh gà nướng mật ong|100 g|250|20|12|14|man|sug,sat
+vịt quay|100 g|340|19|3|28|man|sat,fry,na
+gan heo xào|100 g|165|26|4|4.5|man|pur,pho
+lòng heo luộc|100 g|200|14|0|16|man|pur,sat
+trứng chiên|1 quả|120|6.3|0.4|10|man|fry
+trứng cút luộc|5 quả|80|6|0.3|6|man|
+đậu hũ chiên sả|100 g|220|12|6|16|chay|fry,soy
+đậu hũ sốt cà chua|100 g|120|9|6|7|chay|soy
+đậu hũ non hấp|100 g|70|8|2|4|chay|soy,fod
+nấm xào|100 g|70|3|6|4|chay|
+nấm kim châm xào|100 g|65|3|8|3|chay|
+đậu que xào|100 g|60|2|8|2.5|chay|
+rau cải xanh luộc|100 g|20|2|3|0.3|chay|
+rau lang luộc|100 g|30|3|4|0.3|chay|
+bông cải xanh luộc|100 g|35|2.8|7|0.4|chay|cruc
+bắp cải luộc|100 g|25|1.3|6|0.1|chay|cruc
+cải bó xôi xào|100 g|60|3|4|4|chay|ox,k
+cà rốt luộc|100 g|35|0.8|8|0.2|chay|
+rau muống xào tỏi|100 g|70|3|4|5|chay|k
+dưa leo|100 g|15|0.7|3.6|0.1|chay|
+salad rau dầu giấm|150 g|90|2|8|6|chay|
+salad ức gà|250 g|250|28|12|10|man|
+mướp đắng xào trứng|100 g|95|5|5|6|man|
+bắp luộc|1 trái 150 g|130|4|28|2|chay|fod
+khoai tây luộc|150 g|115|3|26|0.2|chay|k
+khoai môn luộc|100 g|112|1.5|26|0.2|chay|k
+bơ|100 g|160|2|9|15|chay|k
+hạt điều|20 g|110|3.6|6|9|chay|pho
+đậu phộng rang|20 g|115|5|3|10|chay|ox,pho
+sữa tươi không đường|200 ml|120|6|9|6|chay|pho,k
+phô mai|20 g|70|4.5|0.3|5.8|chay|na,sat,pho
+sữa đậu nành không đường|200 ml|70|6|3|3.5|chay|soy
+xoài chín|100 g|60|0.8|15|0.4|ngot|sug
+sầu riêng|100 g|147|1.5|27|5|ngot|sug,k
+dưa hấu|150 g|45|0.9|11|0.2|ngot|sug,fod
+nhãn|100 g|60|1.3|15|0.1|ngot|sug
+vải|100 g|66|0.8|17|0.4|ngot|sug
+bưởi|100 g|38|0.8|10|0.1|ngot|sour
+dứa|100 g|50|0.5|13|0.1|ngot|sour
+nho|100 g|69|0.7|18|0.2|ngot|sug
+dâu tây|100 g|32|0.7|7.7|0.3|ngot|ox
+kiwi|1 quả 75 g|45|0.8|11|0.4|ngot|sour,k
+lê|1 quả 150 g|85|0.5|23|0.2|ngot|fod
+mít|100 g|95|1.7|23|0.6|ngot|sug,fod,k
+chè đậu xanh|1 chén 200 ml|230|6|48|2|ngot|sug
+chè thái|1 ly|350|4|70|8|ngot|sug
+chè bưởi|1 chén|260|3|50|6|ngot|sug,sat
+bánh flan|1 cái|160|4|22|6|ngot|sug
+tào phớ nước đường|1 bát|180|6|33|3|ngot|sug,soy
+sữa chua có đường|1 hũ 100 g|100|3.5|17|2|ngot|sug,pho
+sữa đậu nành có đường|200 ml|120|6|18|3.5|ngot|sug,soy
+nước dừa|200 ml|40|0.5|9|0.2|ngot|k,sug
+nước mía|200 ml|100|0|25|0|ngot|sug
+nước cam vắt|200 ml|90|1.4|21|0.4|ngot|sug,sour,k
+trà sữa trân châu|500 ml|450|3|80|12|ngot|sug,sat
+sinh tố bơ|1 ly 300 ml|330|3|28|24|ngot|sug,k,sat
+cà phê sữa đá|1 ly 250 ml|130|2|22|4|ngot|sug,caf
+bánh quy|30 g|140|2|20|6|ngot|sug,glu,sat
+bánh ngọt kem|80 g|300|4|40|14|ngot|sug,sat,glu
+cà phê đen không đường|1 ly 150 ml|5|0.3|1|0|chay|caf
+trà xanh không đường|1 ly 200 ml|2|0|0|0|chay|
+cơm chiên rau củ|1 dĩa|430|9|70|12|chay|fry,na,gi
+bún chay nước lèo nấm|1 tô 450 ml|320|10|58|5|chay|gi
+phở chay|1 tô 450 ml|340|9|62|5|chay|na,gi
+miến xào nấm|1 dĩa|340|7|60|8|chay|gi
+mì căn xào rau|150 g|210|22|10|8|chay|glu
+đậu hũ nhồi nấm sốt cà|2 miếng|200|14|8|12|chay|soy
+đậu hũ kho nấm|100 g|130|10|5|8|chay|soy,na
+chả giò chay|2 cái|240|5|28|12|chay|fry,glu
+nấm đùi gà nướng|100 g|90|4|8|4|chay|
+nấm rơm kho tiêu|100 g|85|4|6|5|chay|spi,na
+rau củ luộc chấm muối mè|200 g|110|4|20|3|chay|
+canh chua chay|1 bát 250 ml|60|2|12|1|chay|sour
+canh rong biển đậu hũ|1 bát 250 ml|55|5|4|2.5|chay|soy
+bí đỏ hấp|100 g|26|1|6.5|0.1|chay|k
+bí ngòi xào tỏi|100 g|55|1.5|5|3.5|chay|
+măng tây xào|100 g|60|2.5|4|4|chay|fod
+súp lơ trắng hấp|100 g|25|2|5|0.3|chay|cruc,fod
+củ cải luộc|100 g|20|0.7|4|0.1|chay|
+đậu cô ve luộc|100 g|31|1.8|7|0.2|chay|
+đậu bắp luộc|100 g|33|2|7|0.2|chay|
+rau dền luộc|100 g|23|2.5|4|0.3|chay|k,ox
+mướp hương xào|100 g|50|1.5|5|3|chay|
+giá xào|100 g|45|3|5|1.5|chay|
+salad bơ cà chua|200 g|230|3|14|19|chay|k
+salad đậu gà|150 g|250|11|32|8|chay|fod
+hummus|50 g|85|4|7|5|chay|fod
+xôi ngô|150 g|300|6|58|5|chay|gi
+xôi vò|150 g|290|8|58|3|chay|gi
+bánh bao chay|1 cái|230|6|40|5|chay|glu,gi
+bánh mì nướng bơ đậu phộng|2 lát|300|11|32|15|chay|glu,ox,gi
+đậu đen luộc|100 g|130|9|23|0.5|chay|k,pho,fod
+sữa chua hạt chia|1 hũ 150 g|140|7|14|6|chay|pho
+khoai lang nướng|150 g|135|2.4|31|0.2|chay|k,gi
+sữa hạnh nhân không đường|200 ml|35|1|1|2.5|chay|
+bún thịt nướng|1 tô|550|25|68|18|man|gi,sat,sug,na
+bún mọc|1 tô 500 ml|420|22|55|11|man|na,gi
+bún ốc|1 tô 500 ml|400|18|55|12|man|na,gi,pur,sour
+bún cá|1 tô 500 ml|420|24|56|10|man|na,gi
+bún đậu mắm tôm|1 phần|680|26|65|34|man|fry,na,gi,sat,pur
+mì vịt tiềm|1 tô|580|30|60|24|man|na,gi,sat
+cơm rang dưa bò|1 dĩa|620|24|80|22|man|fry,na,gi
+cá bống kho tiêu|100 g|170|20|3|8|man|spi,na
+cá chép om dưa|100 g|130|15|3|6|man|sour,na
+cá hồi nướng chanh|100 g|205|21|1|13|man|
+chả cá Lã Vọng|100 g|220|16|8|14|man|fry,na
+tôm sú nướng muối ớt|100 g|110|21|1|2|man|pur,spi,na
+tôm chiên bột|100 g|250|15|18|14|man|fry,pur,glu
+mực nướng|100 g|120|20|3|3|man|pur
+sò điệp nướng mỡ hành|3 con|120|10|4|7|man|pur,sat
+bò nướng lá lốt|3 cuốn|220|16|3|16|man|sat
+bò lúc lắc|100 g|230|20|8|13|man|sat,na
+bò xào rau muống|150 g|240|22|6|14|man|na
+bít tết|150 g|330|35|1|20|man|sat
+giò heo hầm măng|150 g|320|25|5|22|man|sat
+thịt viên sốt cà|4 viên|250|16|12|15|man|sat,na
+đùi gà nướng|1 cái 120 g|240|26|0|15|man|sat
+cà ri gà|1 bát 300 ml|380|22|18|24|man|sat,spi,na
+canh gà nấm|1 bát 250 ml|120|14|4|5|man|
+canh cua rau đay|1 bát 250 ml|90|8|6|3|man|pur
+trứng cuộn|2 quả|200|13|1|16|man|
+trứng hấp|2 quả|150|12|1|11|man|
+gỏi gà bắp cải|1 dĩa|280|24|14|13|man|sour
+salad cá ngừ|200 g|220|24|10|9|man|pur
+bánh bao nhân thịt|1 cái|320|12|45|10|man|glu,gi,na
+bánh chưng|1 lát 150 g|330|10|42|14|man|gi,sat,na
+phở cuốn|4 cuốn|240|10|34|7|man|gi
+măng cụt|100 g|73|0.4|18|0.6|ngot|
+chôm chôm|100 g|70|0.9|17|0.2|ngot|sug
+mận|100 g|46|0.7|11|0.3|ngot|sour
+na|100 g|94|2.1|24|0.3|ngot|sug
+hồng giòn|100 g|70|0.6|19|0.2|ngot|sug,k
+lựu|100 g|83|1.7|19|1.2|ngot|sug
+quýt|100 g|53|0.8|13|0.3|ngot|sour
+đào|1 quả 150 g|60|1.4|14|0.4|ngot|
+dưa lưới|150 g|50|1.2|12|0.3|ngot|k,fod
+việt quất|100 g|57|0.7|14|0.3|ngot|
+khế|100 g|31|1|7|0.3|ngot|ox,k,sour
+mãng cầu xiêm|100 g|66|1|16|0.3|ngot|sug
+chè đậu đen|1 chén 200 ml|210|6|42|1.5|ngot|sug
+chè hạt sen|1 chén 200 ml|220|4|46|1|ngot|sug
+chè trôi nước|3 viên|280|5|50|6|ngot|sug
+chè khoai môn|1 chén 200 ml|260|3|52|5|ngot|sug,k
+chè chuối|1 chén 200 ml|320|3|55|10|ngot|sug,sat,k
+chè sương sa hạt lựu|1 ly|280|3|55|6|ngot|sug
+chè bắp|1 chén 200 ml|240|4|45|5|ngot|sug
+sương sáo|1 chén|120|0|30|0|ngot|sug
+rau câu dừa|1 miếng|90|1|18|2|ngot|sug
+bánh bông lan|50 g|180|4|30|5|ngot|sug,glu
+bánh tiêu|1 cái|180|3|25|8|ngot|fry,sug,glu
+bánh ít|1 cái|180|4|34|3|ngot|sug,gi
+bánh da lợn|1 miếng|200|2|36|6|ngot|sug,sat
+kem|1 viên 60 g|120|2|14|6|ngot|sug,sat
+sữa chua nếp cẩm|1 hũ|180|4|35|2|ngot|sug
+kẹo dừa|20 g|90|0.3|15|3.5|ngot|sug,sat
+nước ép táo|200 ml|95|0.3|23|0.3|ngot|sug
+nước chanh đường|200 ml|80|0|20|0|ngot|sug,sour
+trà đào cam sả|500 ml|180|0|44|0|ngot|sug,caf
+sinh tố xoài|300 ml|220|3|50|2|ngot|sug
+sinh tố dâu|300 ml|180|3|38|2|ngot|sug,ox
+cacao nóng|200 ml|150|5|20|5|ngot|sug,caf`.split("\n").map(l=>{const f=l.split("|");return{n:f[0],por:f[1],k:+f[2],p:+f[3],c:+f[4],f:+f[5],t:f[6],a:f[7]?f[7].split(","):[]}});
+const DISH={},TYPE={};
+for(const d of LIB){const k=d.n.toLowerCase();DISH[k]=[d.por,d.k,d.p,d.c,d.f];TYPE[k]=d.t}
+const RULE={diabetes:["sug","gi","fry"],dyslipidemia:["fry","sat"],fatty_liver:["sug","fry","sat","alc"],gout:["pur","alc","sug"],hypothyroid:["cruc","soy"],hypertension:["na","alc"],heart_failure:["na","alc"],gastric_ulcer:["spi","sour","fry","caf","alc"],gerd:["fry","spi","sour","caf","alc"],ibs:["fod","spi","caf"],celiac:["glu"],ckd:["k","pho","na"],kidney_stones:["ox","na"]};
+const ALAB={na:"nhiều muối (natri)",sug:"nhiều đường",gi:"tinh bột hấp thu nhanh",fry:"chiên rán, nhiều dầu",sat:"nhiều chất béo bão hòa",pur:"nhiều purin",alc:"có rượu bia",cruc:"rau họ cải",soy:"đậu nành",spi:"cay",sour:"chua",caf:"có caffeine",fod:"FODMAP cao",glu:"có gluten",k:"nhiều kali",pho:"nhiều phospho",ox:"nhiều oxalat"};
+const cap=t=>t.charAt(0).toUpperCase()+t.slice(1);
+
+const nf=(n,d=0)=>n.toLocaleString("vi-VN",{minimumFractionDigits:d,maximumFractionDigits:d});
+function mac(v){
+ const o={k:0,p:0,c:0,f:0,items:[],miss:0};
+ for(const raw of v.split(", ")){
+  const d=DISH[raw.trim().toLowerCase()];
+  if(!d){o.miss++;continue}
+  o.k+=d[1];o.p+=d[2];o.c+=d[3];o.f+=d[4];o.items.push([raw.trim(),...d]);
+ }
+ return o;
+}
+const pills=o=>`<span class="pill">${nf(o.k)} kcal</span><span class="pill">Đạm ${nf(o.p)} g</span><span class="pill">Tinh bột ${nf(o.c)} g</span><span class="pill">Béo ${nf(o.f)} g</span>`;
+const TL={chay:"Chay",man:"Mặn",ngot:"Ngọt"};
+const DAIRY=new Set(["sữa chua không đường","yến mạch sữa tươi"]);
+let ft="all";
+function dishHtml(v){
+ return v.split(", ").map(r=>{const k=r.trim().toLowerCase(),t=TYPE[k]||"chay";
+  return `<span class="dish ${t}${ft!=="all"&&ft!==t?" dim":""}" title="${TL[t]}${DAIRY.has(k)?" (có sữa)":""}">${r.trim()}</span>`}).join("");
+}
+function typeCount(x){
+ const c={chay:0,man:0,ngot:0};
+ for(const v of Object.values(x.m))for(const r of v.split(", "))c[TYPE[r.trim().toLowerCase()]||"chay"]++;
+ return c;
+}
+function menuHtml(x){
+ const rows=Object.entries(x.m).map(([k,v])=>[k,v,mac(v)]);
+ const T=rows.reduce((a,[,,o])=>({k:a.k+o.k,p:a.p+o.p,c:a.c+o.c,f:a.f+o.f}),{k:0,p:0,c:0,f:0});
+ const e=T.p*4+T.c*4+T.f*9||1;
+ const pc=n=>nf(n/e*100);
+ const body=rows.map(([k,v,o])=>`<div class="row"><b>${k}</b><span>${dishHtml(v)}
+  <div class="mac">${pills(o)}</div>
+  <details><summary>Chi tiết từng món</summary><ul>${o.items.map(i=>`<li>${i[0]} (${i[1]}): ${nf(i[2])} kcal · đạm ${nf(i[3],1)} · tinh bột ${nf(i[4],1)} · béo ${nf(i[5],1)}</li>`).join("")}</ul></details></span></div>`).join("");
+ const sp=[T.p*4,T.c*4,T.f*9].map(v=>Math.max(v/e*100,0).toFixed(1));
+ const tot=`<div class="tot"><h3>Giá trị dinh dưỡng cả ngày</h3>
+  <div class="cal"><span>Năng lượng</span><b>${nf(T.k)} kcal</b></div>
+  <div class="nl p"><span>Đạm</span><b>${nf(T.p)} g</b><i>${pc(T.p*4)}%</i></div>
+  <div class="nl c"><span>Tinh bột</span><b>${nf(T.c)} g</b><i>${pc(T.c*4)}%</i></div>
+  <div class="nl f"><span>Chất béo</span><b>${nf(T.f)} g</b><i>${pc(T.f*9)}%</i></div>
+  <div class="split" role="img" aria-label="Tỷ lệ năng lượng: đạm ${pc(T.p*4)}%, tinh bột ${pc(T.c*4)}%, chất béo ${pc(T.f*9)}%"><i class="p" style="flex:${sp[0]}"></i><i class="c" style="flex:${sp[1]}"></i><i class="f" style="flex:${sp[2]}"></i></div>
+  <p>Phần trăm là tỷ lệ trong tổng năng lượng. Số liệu là ước tính theo khẩu phần ghi bên cạnh từng món, chưa gồm nước chấm, gia vị và lượng dầu thêm. Nhu cầu năng lượng khác nhau theo từng người và từng bệnh, hãy điều chỉnh khẩu phần cùng bác sĩ hoặc chuyên gia dinh dưỡng.</p></div>`;
+ return {body,tot,T,rows};
+}
+let grp=-1,sel=D[0].id,q="";
+const $=s=>document.querySelector(s);
+const norm=s=>s.normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/đ/g,"d").toLowerCase();
+const esc=s=>s.replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+function chips(){$("#chips").innerHTML=["Tất cả",...G].map((t,i)=>`<button class="chip" aria-pressed="${grp===i-1}" data-g="${i-1}">${t}</button>`).join("")}
+function list(){
+ const f=D.filter(x=>(grp<0||x.g===grp)&&norm(x.n+" "+x.d).includes(norm(q)));
+ let h="",last=-1;
+ for(const x of f){if(x.g!==last){h+=`<div class="gh">${G[x.g]}</div>`;last=x.g}
+  h+=`<button class="it" data-id="${x.id}" aria-current="${x.id===sel}">${x.n}</button>`}
+ $("#list").innerHTML=h||'<div class="empty">Không tìm thấy bệnh phù hợp. Thử từ khóa khác hoặc chọn "Tất cả".</div>';
+ {const l=$("#list"),c=l.querySelector(".it[aria-current=true]");if(c&&l.scrollWidth>l.clientWidth&&getComputedStyle(l).flexDirection==="row")l.scrollLeft=Math.max(0,c.offsetLeft-(l.clientWidth-c.offsetWidth)/2)}
+}
+function detail(){
+ const x=D.find(y=>y.id===sel);
+ const M=menuHtml(x);
+ const TC=typeCount(x);
+ $("#det").innerHTML=`<span class="tag">${G[x.g]}</span><h2>${x.n}</h2><p>${x.d}</p>
+ <div class="two"><div class="box ok"><h3>Nên ưu tiên</h3><ul>${x.eat.map(i=>`<li>${i}</li>`).join("")}</ul></div>
+ <div class="box no"><h3>Nên hạn chế</h3><ul>${x.no.map(i=>`<li>${i}</li>`).join("")}</ul></div></div>
+ <h3 class="mh">Thực đơn mẫu một ngày</h3>
+ <div class="filt" role="group" aria-label="Lọc món theo loại">${[["all","Tất cả"],["chay","Chay"],["man","Mặn"],["ngot","Ngọt"]].map(([k,t])=>`<button class="chip" data-ft="${k}" aria-pressed="${ft===k}">${t}${k==="all"?"":" ("+TC[k]+")"}</button>`).join("")}</div>
+ <p class="lg">Chay gồm cả món có sữa (sữa chua, sữa tươi). Món mặn gồm thịt, cá và trứng.</p>
+ <div class="menu">${M.body}</div>${M.tot}
+ <div class="tip"><b>Lưu ý:</b> ${x.t}</div>
+ <div class="act"><button class="btn" id="cp">Sao chép thực đơn</button><button class="btn2" id="sv" aria-pressed="${MENUS.has(x.id)}">${MENUS.has(x.id)?"Bỏ lưu thực đơn":"Lưu thực đơn này"}</button></div>`;
+ $("#cp").onclick=async e=>{
+  const txt=`${x.n}\n`+M.rows.map(([k,v,o])=>`${k}: ${v} (~${nf(o.k)} kcal, đạm ${nf(o.p)} g, tinh bột ${nf(o.c)} g, béo ${nf(o.f)} g)`).join("\n")+`\nTổng: ~${nf(M.T.k)} kcal, đạm ${nf(M.T.p)} g, tinh bột ${nf(M.T.c)} g, béo ${nf(M.T.f)} g`;
+  try{await navigator.clipboard.writeText(txt);e.target.textContent="Đã sao chép"}catch{e.target.textContent="Không sao chép được, hãy chọn và copy thủ công"}
+  setTimeout(()=>e.target.textContent="Sao chép thực đơn",2000)};
+ $("#sv").onclick=()=>{if(!ME){openAuth("login");return}MENUS.has(x.id)?MENUS.delete(x.id):MENUS.add(x.id);save();renderAcct();detail()};
+}
+function pick(id){sel=id;libDis=id;if(typeof renderLib==="function")renderLib();if(!AS.custom){AS.cond=new Set([id]);renderAsk()}try{history.replaceState(null,"","#"+id)}catch{}list();detail();save()}
+$("#det").addEventListener("click",e=>{const b=e.target.closest("[data-ft]");if(!b)return;ft=b.dataset.ft;detail()});
+$("#chips").onclick=e=>{const b=e.target.closest("[data-g]");if(!b)return;grp=+b.dataset.g;chips();list()};
+$("#list").onclick=e=>{const b=e.target.closest("[data-id]");if(b)pick(b.dataset.id)};
+$("#q").oninput=e=>{q=e.target.value;list()};
+const h=location.hash.slice(1);if(D.some(x=>x.id===h))sel=h;
+const AS={cond:new Set([sel]),custom:false,ctl:null};
+const SAMPLE=(window.claude&&window.claude.use?window.claude.use("sample"):Promise.resolve(null)).catch(()=>null);
+const QS=["Bữa tối hôm nay nên ăn gì?","Tôi ăn được phở bò không?","Trái cây nào ăn được, trái nào nên tránh?","Đồ uống nào nên tránh?"];
+function renderAsk(){
+ $("#ac").innerHTML=D.map(x=>`<button class="chip" data-c="${x.id}" aria-pressed="${AS.cond.has(x.id)}">${x.n}</button>`).join("");
+ $("#aqs").innerHTML=QS.map(t=>`<button class="q">${t}</button>`).join("");
+}
+const tier=(t,cls,arr,amt)=>Array.isArray(arr)&&arr.length?`<div class="box ${cls}"><h3>${t}</h3><ul>${arr.slice(0,6).map(i=>`<li><b>${esc(String(i.mon||""))}</b>${amt&&i.luong?` (${esc(String(i.luong))})`:""}${i.ly_do?`: ${esc(String(i.ly_do))}`:""}</li>`).join("")}</ul></div>`:"";
+// Biến lưu trữ nlpManager (nếu tích hợp thư viện @nlpjs/basic qua CDN/Bundle)
+let nlpManager = null; 
+
+async function ask(){
+ const out=$("#ao"),btn=$("#ab"),text=$("#aq").value.trim();
+ if(!text){out.innerHTML='<p class="empty">Hãy nhập câu hỏi trước.</p>';return}
+ 
+ const conds=[...AS.cond].map(id=>D.find(x=>x.id===id)).filter(Boolean);
+ const ref=conds.map(x=>`- ${x.n}. Nên ưu tiên: ${x.eat.join("; ")}. Nên hạn chế: ${x.no.join("; ")}.`).join("\n")||"(chưa chọn bệnh nào)";
+ const extra=$("#ax").value.trim()||"(không có)";
+
+ btn.disabled=true;btn.textContent="Đang hỏi…";
+ out.innerHTML='<p class="empty">Trợ lý đang phân tích…</p>';
+
+ try {
+  // LUỒNG 1: OFFLINE NLP (Kiểm tra intent cục bộ trước)
+  if (nlpManager) {
+      const offlineResult = await nlpManager.process('vi', text);
+      if (offlineResult.score > 0.8 && offlineResult.intent !== 'None') {
+          // Xử lý các lệnh cơ bản: thêm món, tra calo trực tiếp trên UI...
+          out.innerHTML = `<div class="res"><p class="sum">Đã xử lý lệnh: ${offlineResult.intent}</p></div>`;
+          btn.disabled=false;btn.textContent="Hỏi trợ lý";
+          return;
+      }
+  }
+
+  // LUỒNG 2: ONLINE FALLBACK (Truy vấn Netlify Function hoặc n8n Webhook)[cite: 3, 5]
+  if (!navigator.onLine) {
+      out.innerHTML='<p class="empty" style="color:var(--no)">Bạn đang offline. Hệ thống chỉ xử lý được các lệnh cơ bản.</p>';
+      return;
+  }
+
+  // Thay URL này bằng endpoint Netlify Function (/api/chat) hoặc Webhook n8n của bạn
+  const API_URL = '/.netlify/functions/chat'; 
+  
+  const response = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+          message: text,
+          healthContext: { ref, extra } // Chỉ gửi dữ liệu y khoa ẩn danh
+      })
+  });
+
+  if (!response.ok) throw new Error("Lỗi kết nối API");
+  const r = await response.json();
+  
+  // Render kết quả từ AI
+  out.innerHTML=`<div class="res"><p class="sum">${esc(String(r.tom_tat||""))}</p>
+   ${tier("Nên ăn","ok",r.nen_an)}${tier("Ăn được nhưng không nhiều","wn",r.han_che,true)}${tier("Không nên ăn","no",r.khong_nen)}
+   ${r.luu_y?`<div class="tip"><b>Lưu ý:</b> ${esc(String(r.luu_y))}</div>`:""}
+   ${r.gap_bac_si===true?'<div class="tip" style="background:var(--nobg);color:var(--no)">Trường hợp của bạn nên hỏi ý kiến bác sĩ trước khi áp dụng.</div>':""}</div>`;
+
+ } catch(e) {
+  out.innerHTML=`<p class="empty">Trợ lý chưa kết nối được (Vui lòng cấu hình Netlify Function hoặc n8n Webhook). Hãy thử lại sau.</p>`;
+ } finally {
+  btn.disabled=false;btn.textContent="Hỏi trợ lý";
+ }
+}
+
+$("#ac").onclick=e=>{const b=e.target.closest("[data-c]");if(!b)return;AS.custom=true;const id=b.dataset.c;AS.cond.has(id)?AS.cond.delete(id):AS.cond.add(id);renderAsk();save()};
+$("#aqs").onclick=e=>{const b=e.target.closest(".q");if(!b)return;$("#aq").value=b.textContent;ask()};
+$("#ab").onclick=ask;
+$("#aq").onkeydown=e=>{if(e.key==="Enter")ask()};
+
+let libDis=null,libT="all",libQ="",libOnly=false,libFav=false;
+const FAV=new Set(),MENUS=new Set();
+const heart=d=>{const k=d.n.toLowerCase(),on=FAV.has(k);return `<button class="hrt" data-fav="${esc(k)}" aria-pressed="${on}" aria-label="${on?"Bỏ yêu thích":"Yêu thích"} ${esc(d.n)}">${on?"♥":"♡"}</button>`};
+function renderLib(){
+ const rule=libDis?RULE[libDis]||[]:[];
+ const dn=libDis?D.find(x=>x.id===libDis).n:"";
+ $("#lt").innerHTML=[["all","Tất cả"],["chay","Chay"],["man","Mặn"],["ngot","Ngọt"]].map(([k,t])=>`<button class="chip" data-lt="${k}" aria-pressed="${libT===k}">${t}</button>`).join("");
+ if($("#ld").options.length<2)$("#ld").innerHTML='<option value="">Không lọc theo bệnh</option>'+D.map(x=>`<option value="${x.id}">${x.n}</option>`).join("");
+ $("#ld").value=libDis||"";
+ $("#lo").checked=libOnly;$("#lf").checked=libFav&&!!ME;
+ const q=norm(libQ);
+ let list=LIB.filter(d=>(libT==="all"||d.t===libT)&&norm(d.n).includes(q)).map(d=>({d,bad:d.a.filter(x=>rule.includes(x))}));
+ if(libDis&&libOnly)list=list.filter(r=>!r.bad.length);
+ if(libFav&&ME)list=list.filter(r=>FAV.has(r.d.n.toLowerCase()));
+ const okN=list.filter(r=>!r.bad.length).length;
+ $("#lc").textContent=`${list.length} món`+(libDis?` · ${okN} món hợp với ${dn}`:"");
+ $("#lg").innerHTML=list.map(({d,bad})=>`<div class="lcard${libDis&&bad.length?" bad":""}"><div class="lh"><b>${cap(d.n)}</b><span class="lr"><span class="dish ${d.t}">${TL[d.t]}</span>${heart(d)}</span></div><div class="lp">${d.por}</div><div class="mac"><span class="pill">${nf(d.k)} kcal</span><span class="pill">Đạm ${nf(d.p,1)} g</span><span class="pill">Tinh bột ${nf(d.c,1)} g</span><span class="pill">Béo ${nf(d.f,1)} g</span></div>${libDis?(bad.length?`<div class="lv no2">Nên hạn chế: ${bad.map(x=>ALAB[x]).join(", ")}</div>`:`<div class="lv ok2">Phù hợp</div>`):""}</div>`).join("")||'<p class="empty">Không có món phù hợp bộ lọc.</p>';
+}
+$("#lt").onclick=e=>{const b=e.target.closest("[data-lt]");if(!b)return;libT=b.dataset.lt;renderLib()};
+$("#ld").onchange=e=>{libDis=e.target.value||null;renderLib()};
+$("#lo").onchange=e=>{libOnly=e.target.checked;renderLib()};
+$("#lf").onchange=e=>{if(!ME){e.target.checked=false;openAuth("login");return}libFav=e.target.checked;renderLib()};
+$("#lg").onclick=e=>{const b=e.target.closest("[data-fav]");if(!b)return;if(!ME){openAuth("login");return}
+ const k=b.dataset.fav;FAV.has(k)?FAV.delete(k):FAV.add(k);save();renderAcct();renderLib();
+ const n=[...$("#lg").querySelectorAll("[data-fav]")].find(x=>x.dataset.fav===k);if(n)n.focus()};
+$("#lq").oninput=e=>{libQ=e.target.value;renderLib()};
+/* ===== Tài khoản (lưu trong trình duyệt) ===== */
+const ST={ok:true};
+function rd(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch{ST.ok=false;return d}}
+function wr(k,v){try{if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,JSON.stringify(v));return true}catch{ST.ok=false;return false}}
+const USERS=rd("ttbl.users",{})||{};
+const K=u=>"u_"+u;
+let ME=null,amode="login",fails=0,lockUntil=0;
+const b64=b=>btoa(String.fromCharCode(...new Uint8Array(b)));
+const unb64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+async function hashPw(pw,salt){
+ const key=await crypto.subtle.importKey("raw",new TextEncoder().encode(pw),"PBKDF2",false,["deriveBits"]);
+ return b64(await crypto.subtle.deriveBits({name:"PBKDF2",hash:"SHA-256",salt,iterations:150000},key,256));
+}
+function prof(){return{sel,cond:[...AS.cond],custom:AS.custom,extra:$("#ax").value,fav:[...FAV],menus:[...MENUS]}}
+function save(){if(!ME||!USERS[K(ME)])return;USERS[K(ME)].p=prof();wr("ttbl.users",USERS)}
+function resetProfile(){FAV.clear();MENUS.clear();AS.custom=false;AS.cond=new Set([sel]);$("#ax").value="";libFav=false}
+function applyProfile(p,keepSel){
+ FAV.clear();MENUS.clear();
+ (p.fav||[]).forEach(x=>FAV.add(x));
+ (p.menus||[]).forEach(x=>{if(D.some(d=>d.id===x))MENUS.add(x)});
+ if(!keepSel&&p.sel&&D.some(x=>x.id===p.sel))sel=p.sel;
+ AS.custom=!!p.custom;
+ AS.cond=new Set((p.cond||[]).filter(id=>D.some(x=>x.id===id)));
+ if(!AS.cond.size)AS.cond=new Set([sel]);
+ $("#ax").value=typeof p.extra==="string"?p.extra:"";
+ libDis=sel;libFav=false;
+}
+function refresh(){renderAcct();renderAsk();list();detail();renderLib()}
+function renderAcct(){
+ const a=$("#acct");
+ const warn=ST.ok?"":'<span class="svd">Trình duyệt đang chặn lưu trữ nên tài khoản chỉ tồn tại đến khi bạn đóng trang.</span>';
+ if(!ME){
+  a.innerHTML=`<span class="who">Bạn chưa đăng nhập. Đăng nhập để lưu bệnh, thông tin dị ứng/thuốc, món và thực đơn yêu thích của riêng bạn.</span><span class="act"><button class="btn" data-ac="login">Đăng nhập</button><button class="btn2" data-ac="reg">Đăng ký</button></span>${warn}`;
+  return;
+ }
+ const ms=[...MENUS].map(id=>D.find(x=>x.id===id)).filter(Boolean);
+ a.innerHTML=`<span class="who">Xin chào, <b>${esc(ME)}</b>. ${FAV.size} món yêu thích${ms.length?`, ${ms.length} thực đơn đã lưu`:""}.</span><span class="act"><button class="btn2" data-ac="favs">Xem món yêu thích</button><button class="btn2" data-ac="out">Đăng xuất</button><button class="btn2" data-ac="del">Xóa tài khoản</button></span>${ms.length?`<span class="svd">Thực đơn đã lưu: ${ms.map(x=>`<button class="chip" data-mn="${x.id}">${x.n}</button>`).join("")}</span>`:""}${warn}`;
+}
+function setMode(m){
+ amode=m;
+ $("#adt").textContent=m==="login"?"Đăng nhập":"Đăng ký tài khoản";
+ $("#aSub").textContent=m==="login"?"Đăng nhập":"Tạo tài khoản";
+ $("#apl").hidden=m!=="reg";
+ $("#ap").autocomplete=m==="reg"?"new-password":"current-password";
+ document.querySelectorAll("[data-am]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.am===m)));
+ $("#ae").textContent="";
+}
+function openAuth(m){setMode(m);$("#au").value="";$("#ap").value="";$("#ap2").value="";$("#authd").showModal();$("#au").focus()}
+function signOut(){
+ save();ME=null;wr("ttbl.session",null);
+ if(ctlAbort())AS.ctl=null;
+ resetProfile();$("#ao").innerHTML="";refresh();
+}
+function ctlAbort(){if(AS.ctl){AS.ctl.abort();return true}return false}
+$("#authd").addEventListener("click",e=>{const b=e.target.closest("[data-am]");if(b)setMode(b.dataset.am)});
+$("#aClose").onclick=()=>$("#authd").close();
+$("#af").onsubmit=async e=>{
+ e.preventDefault();
+ const err=$("#ae"),u=$("#au").value.trim().toLowerCase(),p=$("#ap").value,btn=$("#aSub");
+ if(!/^[a-z0-9._-]{3,24}$/.test(u)){err.textContent="Tên đăng nhập 3-24 ký tự: chữ không dấu, số, dấu chấm, gạch dưới hoặc gạch ngang.";return}
+ if(!(window.crypto&&crypto.subtle)){err.textContent="Trình duyệt không hỗ trợ mã hóa mật khẩu. Hãy mở trang qua https.";return}
+ btn.disabled=true;
+ try{
+  if(amode==="reg"){
+   if(p.length<8){err.textContent="Mật khẩu cần ít nhất 8 ký tự.";return}
+   if(p!==$("#ap2").value){err.textContent="Hai lần nhập mật khẩu chưa giống nhau.";return}
+   if(USERS[K(u)]){err.textContent="Tên đăng nhập này đã có người dùng.";return}
+   const salt=crypto.getRandomValues(new Uint8Array(16));
+   USERS[K(u)]={salt:b64(salt),h:await hashPw(p,salt),p:{}};
+   ME=u;resetProfile();save();
+  }else{
+   if(Date.now()<lockUntil){err.textContent="Bạn nhập sai nhiều lần. Hãy chờ 30 giây rồi thử lại.";return}
+   const r=USERS[K(u)];
+   const ok=r&&await hashPw(p,unb64(r.salt))===r.h;
+   if(!ok){fails++;if(fails>=5){lockUntil=Date.now()+30000;fails=0}err.textContent="Sai tên đăng nhập hoặc mật khẩu.";return}
+   fails=0;ME=u;applyProfile(r.p||{});
+  }
+  wr("ttbl.session",ME);
+  $("#ao").innerHTML="";
+  $("#authd").close();refresh();
+ }finally{btn.disabled=false}
+};
+$("#acct").onclick=e=>{
+ const b=e.target.closest("[data-ac],[data-mn]");if(!b)return;
+ if(b.dataset.mn){pick(b.dataset.mn);$("#det").scrollIntoView({block:"start"});return}
+ const a=b.dataset.ac;
+ if(a==="login"||a==="reg")openAuth(a);
+ else if(a==="out")signOut();
+ else if(a==="favs"){libFav=true;renderLib();$("#lbt").scrollIntoView({block:"start"})}
+ else if(a==="del"&&confirm("Xóa tài khoản này cùng toàn bộ dữ liệu đã lưu trên trình duyệt? Không thể khôi phục.")){
+  delete USERS[K(ME)];wr("ttbl.users",USERS);ME=null;wr("ttbl.session",null);resetProfile();$("#ao").innerHTML="";refresh();
+ }
+};
+$("#ax").addEventListener("input",save);
+{const s0=rd("ttbl.session",null);if(s0&&USERS[K(s0)]){ME=s0;applyProfile(USERS[K(s0)].p||{},D.some(x=>x.id===h))}}
+libDis=sel;
+renderAsk();
+chips();list();detail();renderLib();renderAcct();
+
+/* ===== Điều hướng, số liệu đầu trang ===== */
+$("#f1").textContent=nf(D.length);$("#f2").textContent=nf(LIB.length);
+document.querySelector(".nv").onclick=e=>{const b=e.target.closest("[data-go]");if(!b)return;const t=document.getElementById(b.dataset.go);if(t)t.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"start"})};
+
+/* ===== Đánh giá trang web ===== */
+const cuse=n=>{try{return window.claude&&window.claude.use?Promise.resolve(window.claude.use(n)).catch(()=>null):Promise.resolve(null)}catch{return Promise.resolve(null)}};
+const RV={db:null,user:null,uid:null,rows:[],loaded:false,slow:false,err:"",dirty:false,arm:null,armT:0,ro:false,show:12,timer:0};
+const RLAB=["","Chưa tốt","Tạm được","Bình thường","Tốt","Rất tốt"];
+const rvMsg=(t,ok)=>{const m=$("#rvm");m.textContent=t||"";m.className="err"+(ok?" okm":"")};
+const starSpan=n=>`<span class="sr" style="--p:${(n/5*100).toFixed(1)}%" role="img" aria-label="${nf(n,1)} trên 5 sao">★★★★★</span>`;
+const clampStar=v=>{const s=Math.round(+v);return s>=1&&s<=5?s:0};
+const rvRows=()=>RV.rows.map(r=>({id:r.id,s:clampStar(r.stars),text:typeof r.text==="string"?r.text:"",name:typeof r.name==="string"?r.name:"",t:+r.t||0})).filter(r=>r.s);
+
+function rvLock(){
+ const reason=!RV.db?"Phần đánh giá chưa khả dụng ở cách mở trang này. Hãy mở lại từ liên kết gốc.":
+  !RV.uid?"Bạn cần đăng nhập Claude để gửi đánh giá.":
+  (RV.ro||(RV.user&&RV.user.can&&RV.user.can("data.write")===false))?"Tài khoản của bạn đang ở chế độ chỉ xem nên chưa gửi được đánh giá.":"";
+ for(const el of $("#rvf").querySelectorAll("input,textarea,button"))el.disabled=!!reason;
+ $("#rs").classList.toggle("off",!!reason);
+ if(reason)rvMsg(reason,false);else if($("#rvm").classList.contains("err")&&!$("#rvm").classList.contains("okm")&&/chưa khả dụng|đăng nhập Claude|chỉ xem/.test($("#rvm").textContent))rvMsg("");
+}
+
+function renderSummary(){
+ const el=$("#rsum");
+ if(!RV.db){el.innerHTML='<p class="empty" style="padding:0">Điểm đánh giá sẽ hiện ở đây khi trang được mở từ liên kết gốc.</p>';return}
+ if(!RV.loaded){el.innerHTML=`<p class="empty" style="padding:0">${RV.err?"Không tải được đánh giá lúc này. Hãy thử mở lại trang sau.":RV.slow?"Chưa kết nối được. Hãy chờ thêm hoặc thử lại sau.":"Đang tải đánh giá…"}</p>`;return}
+ const rows=rvRows(),n=rows.length;
+ const note=RV.slow?'<p class="mini" style="margin:10px 0 0">Đang hiển thị dữ liệu đã lưu, có thể chưa mới nhất.</p>':"";
+ if(!n){el.innerHTML=`<div class="avg"><b>–</b><span>chưa có đánh giá</span></div><p class="mini" style="margin:8px 0 0">Hãy là người đầu tiên: chọn số sao ở khung bên dưới.</p>${note}`;return}
+ const cnt=[0,0,0,0,0,0];let sum=0;for(const r of rows){cnt[r.s]++;sum+=r.s}
+ const avg=sum/n;
+ el.innerHTML=`<div class="avg"><b>${nf(avg,1)}</b><span>trên 5 · ${nf(n)} đánh giá</span></div>${starSpan(avg)}
+ <div class="dist">${[5,4,3,2,1].map(s=>`<div class="dr"><span>${s} sao</span><span class="tr"><i style="width:${(cnt[s]/n*100).toFixed(1)}%"></i></span><em>${nf(cnt[s])}</em></div>`).join("")}</div>${note}`;
+}
+
+function renderRevs(){
+ const el=$("#rl");
+ if(!RV.db||!RV.loaded){el.innerHTML="";return}
+ const rows=rvRows().sort((a,b)=>b.t-a.t),mod=!!(RV.user&&RV.user.isOwner&&RV.user.isOwner());
+ if(!rows.length){el.innerHTML='<p class="empty">Chưa có nhận xét nào. Nhận xét của mọi người sẽ hiện ở đây.</p>';return}
+ const vis=rows.slice(0,RV.show);
+ el.innerHTML=vis.map(r=>{
+  const own=RV.uid&&r.id===RV.uid,date=r.t?new Date(r.t).toLocaleDateString("vi-VN"):"";
+  return `<article class="ri"><div class="rih"><b>${esc(r.name||"Ẩn danh")}</b>${own?'<span class="pill">Của bạn</span>':""}${starSpan(r.s)}${date?`<time class="mini">${esc(date)}</time>`:""}</div>${r.text?`<p>${esc(r.text)}</p>`:""}${mod&&!own?`<div class="act"><button class="btn2 sm" type="button" data-rdel="${esc(r.id)}">${RV.arm===r.id?"Bấm lần nữa để xóa":"Xóa nhận xét này"}</button></div>`:""}</article>`}).join("")
+  +(rows.length>vis.length?`<button class="btn2" type="button" id="rmore">Xem thêm ${nf(rows.length-vis.length)} nhận xét</button>`:"");
+}
+
+function syncForm(){
+ const mine=RV.uid?rvRows().find(r=>r.id===RV.uid):null;
+ $("#rvb").textContent=mine?"Cập nhật đánh giá":"Gửi đánh giá";
+ $("#rvd").hidden=!mine;
+ if(mine&&!RV.dirty){
+  const r=document.getElementById("st"+mine.s);if(r)r.checked=true;
+  $("#rsl").textContent=RLAB[mine.s];
+  $("#rvx").value=mine.text;$("#rvn").value=mine.name;$("#rvcnt").textContent=mine.text.length+"/500";
+ }
+}
+function renderReviews(){renderSummary();renderRevs();syncForm();rvLock()}
+
+$("#rs").addEventListener("change",e=>{RV.dirty=true;$("#rsl").textContent=RLAB[+e.target.value]||"Chọn số sao";rvMsg("")});
+$("#rvx").addEventListener("input",e=>{RV.dirty=true;$("#rvcnt").textContent=e.target.value.length+"/500"});
+$("#rvn").addEventListener("input",()=>{RV.dirty=true});
+
+function rvErr(e){
+ const c=e&&e.code;
+ if(c==="invalid_argument"){RV.ro=true;rvLock();return}
+ rvMsg(c==="quota_exceeded"?"Đã đủ số lượng đánh giá cho phép, chưa thể thêm mới.":c==="resource_exhausted"?"Bạn thao tác hơi nhanh. Hãy chờ ít phút rồi thử lại.":"Chưa lưu được. Hãy thử lại sau.",false);
+}
+$("#rvf").onsubmit=async e=>{
+ e.preventDefault();
+ if(!RV.db||!RV.uid||RV.busy)return;
+ const st=document.querySelector('input[name=st]:checked'),stars=st?+st.value:0;
+ if(!stars){rvMsg("Hãy chọn số sao trước khi gửi.",false);return}
+ const text=$("#rvx").value.trim().slice(0,500),name=$("#rvn").value.trim().slice(0,30);
+ const mine=rvRows().find(r=>r.id===RV.uid);
+ if(mine&&mine.s===stars&&mine.text===text&&mine.name===name){rvMsg("Đánh giá của bạn không thay đổi.",true);return}
+ RV.busy=true;$("#rvb").disabled=true;
+ try{
+  await RV.db.doc("reviews/"+RV.uid).set({stars,text,name,t:Date.now()});
+  RV.dirty=false;rvMsg("Đã lưu đánh giá của bạn. Cảm ơn bạn!",true);
+ }catch(err){rvErr(err)}
+ finally{RV.busy=false;if(!RV.ro)$("#rvb").disabled=false}
+};
+let rdArm=0;
+$("#rvd").onclick=async e=>{
+ if(!RV.db||!RV.uid||RV.busy)return;
+ const b=e.currentTarget;
+ if(!rdArm){rdArm=setTimeout(()=>{rdArm=0;b.textContent="Xóa đánh giá của tôi"},4000);b.textContent="Bấm lần nữa để xóa";return}
+ clearTimeout(rdArm);rdArm=0;b.textContent="Xóa đánh giá của tôi";
+ RV.busy=true;
+ try{
+  await RV.db.doc("reviews/"+RV.uid).delete();
+  RV.dirty=false;document.querySelectorAll('input[name=st]').forEach(i=>i.checked=false);
+  $("#rsl").textContent="Chọn số sao";$("#rvx").value="";$("#rvn").value="";$("#rvcnt").textContent="0/500";
+  rvMsg("Đã xóa đánh giá của bạn.",true);
+ }catch(err){rvErr(err)}
+ finally{RV.busy=false}
+};
+$("#rl").onclick=async e=>{
+ if(e.target.closest("#rmore")){RV.show+=12;renderRevs();return}
+ const b=e.target.closest("[data-rdel]");if(!b||!RV.db)return;
+ const id=b.dataset.rdel;
+ if(RV.arm!==id){RV.arm=id;clearTimeout(RV.armT);RV.armT=setTimeout(()=>{RV.arm=null;renderRevs()},4000);renderRevs();return}
+ clearTimeout(RV.armT);RV.arm=null;
+ try{await RV.db.doc("reviews/"+id).delete()}catch(err){rvErr(err)}
+};
+
+async function initReviews(){
+ renderReviews();
+ const [db,user]=await Promise.all([cuse("db"),cuse("user")]);
+ RV.db=db;RV.user=user;
+ if(user&&user.id){try{RV.uid=await user.id()}catch{RV.uid=null}}
+ renderReviews();
+ if(!db)return;
+ RV.timer=setTimeout(()=>{RV.slow=true;renderReviews()},10000);
+ try{
+  db.collection("reviews").orderBy("t","desc").limit(200).onSnapshot(s=>{
+   if(!s.metadata.fromCache){clearTimeout(RV.timer);RV.slow=false}
+   RV.rows=s.docs.map(d=>({id:d.id,...(d.data()||{})}));RV.loaded=true;RV.err="";renderReviews();
+  },er=>{clearTimeout(RV.timer);RV.err=(er&&er.code)||"unavailable";RV.loaded=false;renderReviews()});
+ }catch{RV.err="unavailable";renderReviews()}
+}
+initReviews();
+</script>
+</body>
+</html>
