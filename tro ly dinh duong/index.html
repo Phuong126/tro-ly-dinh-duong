@@ -719,7 +719,7 @@ async function ask(){
   }
 
   // Thay URL này bằng endpoint Netlify Function (/api/chat) hoặc Webhook n8n của bạn
-  const API_URL = '/.netlify/functions/chat'; 
+  const API_URL = '/api/chat'; 
   
   const response = await fetch(API_URL, {
       method: 'POST',
